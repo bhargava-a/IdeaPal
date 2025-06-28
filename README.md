@@ -1,4 +1,4 @@
-<h1 align="center">🧠 IdeaPal – Your AI Study Buddy</h1>
+<h1 align="center"> IdeaPal – Your AI Study Buddy</h1>
 
 <p align="center">
   A personalized AI-powered learning platform that makes education interactive, intelligent, and fun.

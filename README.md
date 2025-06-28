@@ -1,4 +1,4 @@
-<h1 align="center">🧠 IdeaPal – Your AI Study Buddy</h1>
+<h1 align="center"> IdeaPal – Your AI Study Buddy</h1>
 
 <p align="center">
   A personalized AI-powered learning platform that makes education interactive, intelligent, and fun.
@@ -13,13 +13,13 @@
 
 ---
 
-## 🚀 Overview
+##  Overview
 
 **IdeaPal** is an AI-powered education app designed to personalize student learning. With smart course recommendations, interactive learning modules, and a unique **Gemini-based Doubt Chaining System**, students can engage with content like never before.
 
 ---
 
-## 🧩 Features
+##  Features
 
 - 🔐 Firebase-based Sign up / Login (Google or Email)
 - 🎯 Personalized course suggestions based on user input
@@ -35,7 +35,7 @@
 
 ---
 
-## 🧠 Gemini AI – Doubt Chaining System
+##  Gemini AI – Doubt Chaining System
 
 - Highlight any word/sentence
 - Hover → `?` icon appears → click to trigger popup
@@ -45,7 +45,7 @@
 
 ---
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 | Layer       | Tool/Tech           |
 |-------------|---------------------|
@@ -56,7 +56,7 @@
 
 ---
 
-## 📦 Getting Started
+##  Getting Started
 
 ```bash
 git clone https://github.com/your-username/ideapal.git

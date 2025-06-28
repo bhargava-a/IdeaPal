@@ -33,26 +33,7 @@
 - 📈 Progress tracking and learning history
 - 🌓 Light/Dark mode toggle
 
----
-
-## 🎨 UI Theme – "Neo Learning Vibe"
-
-| Element       | Color     | Purpose                        |
-|---------------|-----------|--------------------------------|
-| Primary       | #4F46E5   | Indigo – bold, modern tone     |
-| Accent        | #FACC15   | Yellow – energy for CTAs       |
-| Secondary     | #22D3EE   | Cyan – interactive elements    |
-| Background    | #F9FAFB   | Clean layout base              |
-| Dark Mode     | #1E293B   | Elegant focus option           |
-
-Fonts used:
-- `Poppins` (headings)
-- `Inter` (body)
-- `DM Sans` (accent/quote)
-
----
-
-## 🧠 Gemini AI – Doubt Chaining System
+##  Gemini AI – Doubt Chaining System
 
 - Highlight any word/sentence
 - Hover → `?` icon appears → click to trigger popup

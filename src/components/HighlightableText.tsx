@@ -14,6 +14,7 @@ interface Doubt {
   query: string;
   response: string;
   zIndex: number;
+  anchorRect: DOMRect | null; // New: position of highlighted text
 }
 
 const HighlightableText = ({ children }: HighlightableTextProps) => {
@@ -23,6 +24,7 @@ const HighlightableText = ({ children }: HighlightableTextProps) => {
   const generateId = () => Math.random().toString(36).substr(2, 9);
 
   const handleTextSelection = () => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
     const selection = window.getSelection();
     const text = selection?.toString().trim();
     
@@ -55,11 +57,13 @@ const HighlightableText = ({ children }: HighlightableTextProps) => {
         `;
         
         helpIcon.onclick = () => {
-          createDoubt(text);
+          createDoubt(text, rect); // Pass anchor position
           helpIcon.remove();
         };
         
-        document.body.appendChild(helpIcon);
+        if (document.body) {
+          document.body.appendChild(helpIcon);
+        }
         
         // Remove icon after 5 seconds
         setTimeout(() => {
@@ -69,13 +73,14 @@ const HighlightableText = ({ children }: HighlightableTextProps) => {
     }
   };
 
-  const createDoubt = (selectedText: string) => {
+  const createDoubt = (selectedText: string, anchorRect: DOMRect | null) => {
     const newDoubt: Doubt = {
       id: generateId(),
       selectedText,
       query: '',
       response: '',
-      zIndex: 1000 + doubts.length * 10
+      zIndex: 1000 + doubts.length * 10,
+      anchorRect,
     };
     
     setDoubts(prev => [...prev, newDoubt]);
@@ -119,6 +124,12 @@ You can highlight text within this response to create nested doubts and dive dee
     setCurrentQuery(prev => ({ ...prev, [doubtId]: query }));
   };
 
+  // Helper to get popup position by id
+  const getPopupRect = (doubtId: string) => {
+    const el = document.getElementById(`doubt-popup-${doubtId}`);
+    return el ? el.getBoundingClientRect() : null;
+  };
+
   return (
     <>
       <div 
@@ -126,7 +137,52 @@ You can highlight text within this response to create nested doubts and dive dee
         onMouseUp={handleTextSelection}
         dangerouslySetInnerHTML={{ __html: children.replace(/\n/g, '<br/>') }}
       />
-      
+      {/* Render SVG lines connecting anchor to popup */}
+      {doubts.map((doubt) => {
+        if (!doubt.anchorRect) return null;
+        const popupRect = getPopupRect(doubt.id);
+        if (!popupRect) return null;
+        // Calculate start (anchor) and end (popup) points
+        const startX = doubt.anchorRect.left + doubt.anchorRect.width / 2;
+        const startY = doubt.anchorRect.top + doubt.anchorRect.height / 2;
+        const endX = popupRect.left + popupRect.width / 2;
+        const endY = popupRect.top + 24; // Top center of popup
+        // SVG must cover the whole viewport
+        const svgLeft = Math.min(startX, endX) - 20;
+        const svgTop = Math.min(startY, endY) - 20;
+        const svgWidth = Math.abs(endX - startX) + 40;
+        const svgHeight = Math.abs(endY - startY) + 40;
+        return (
+          <svg
+            key={doubt.id}
+            style={{
+              position: 'fixed',
+              left: svgLeft,
+              top: svgTop,
+              pointerEvents: 'none',
+              zIndex: doubt.zIndex - 2,
+            }}
+            width={svgWidth}
+            height={svgHeight}
+          >
+            <line
+              x1={startX - svgLeft}
+              y1={startY - svgTop}
+              x2={endX - svgLeft}
+              y2={endY - svgTop}
+              stroke="#6366f1"
+              strokeWidth={3}
+              strokeDasharray="6 4"
+              markerEnd="url(#arrowhead)"
+            />
+            <defs>
+              <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto" markerUnits="strokeWidth">
+                <path d="M0,0 L8,4 L0,8" fill="#6366f1" />
+              </marker>
+            </defs>
+          </svg>
+        );
+      })}
       {/* Render nested doubt popups */}
       {doubts.map((doubt, index) => (
         <div key={doubt.id}>
@@ -139,10 +195,45 @@ You can highlight text within this response to create nested doubts and dive dee
           
           {/* Doubt popup */}
           <div 
-            className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
-                     bg-white rounded-xl shadow-2xl border border-gray-200 
-                     max-w-2xl w-full max-h-[80vh] overflow-y-auto m-4"
-            style={{ zIndex: doubt.zIndex }}
+            id={`doubt-popup-${doubt.id}`}
+            className="fixed bg-white rounded-xl shadow-2xl border border-gray-200 max-w-2xl w-full max-h-[80vh] overflow-y-auto m-4"
+            style={(() => {
+              const baseOffset = 32 * index;
+              // Estimate popup size (could be improved by measuring, but 600x400 is a safe default)
+              const popupWidth = 600;
+              const popupHeight = 400;
+              const vw = window.innerWidth;
+              const vh = window.innerHeight;
+              // Center position
+              const centerTop = vh / 2;
+              const centerLeft = vw / 2;
+              // Max offset so popup stays in viewport
+              const maxOffsetX = Math.max(0, (vw - popupWidth) / 2);
+              const maxOffsetY = Math.max(0, (vh - popupHeight) / 2);
+              const offsetX = Math.min(baseOffset, maxOffsetX);
+              const offsetY = Math.min(baseOffset, maxOffsetY);
+              
+              // Ensure the top 'Doubt #N' icon is always visible
+              const headerHeight = 40; // px, adjust if needed
+              const minTop = headerHeight + 16; // 16px margin from top
+              let top = centerTop + offsetY;
+              // Clamp so popup never goes above minTop
+              if (top - popupHeight / 2 < minTop) {
+                top = minTop + popupHeight / 2;
+              }
+              // Clamp so popup never goes below viewport
+              const maxTop = vh - popupHeight / 2 - 16;
+              if (top > maxTop) {
+                top = maxTop;
+              }
+              // left logic unchanged
+              return {
+                zIndex: doubt.zIndex,
+                top: `${top}px`,
+                left: `${centerLeft + offsetX}px`,
+                transform: 'translate(-50%, -50%)',
+              };
+            })()}
           >
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-100">
@@ -199,14 +290,6 @@ You can highlight text within this response to create nested doubts and dive dee
               )}
             </div>
             
-            {/* Chain indicator */}
-            {index > 0 && (
-              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                <div className="bg-primary text-white px-3 py-1 rounded-full text-xs font-dm-sans font-medium">
-                  Doubt #{index + 1}
-                </div>
-              </div>
-            )}
           </div>
         </div>
       ))}

@@ -1,14 +1,21 @@
 
-import { ArrowRight, Sparkles, BookOpen, Users, Star } from 'lucide-react';
+import { ArrowRight, Sparkles, BookOpen, Users, Star, Bot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
 import CourseCard from '@/components/CourseCard';
 import Logo from '@/components/Logo';
 import SearchDropdown from '@/components/SearchDropdown';
 import { courses } from '@/data/courses';
+import { useState } from 'react';
+import YourPalChat from '@/components/YourPalChat';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 
 const Index = () => {
   const featuredCourses = courses.slice(0, 3);
+  const [showYourPal, setShowYourPal] = useState(false);
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-primary/5 to-secondary/10">
@@ -184,6 +191,36 @@ const Index = () => {
           </div>
         </div>
       </footer>
+
+      {/* YourPal Floating AI Icon */}
+      <button
+        className="fixed bottom-8 right-8 z-50 bg-gradient-to-r from-primary to-secondary text-white rounded-full shadow-2xl p-5 flex items-center justify-center hover:scale-110 transition-transform border-4 border-white"
+        onClick={() => setShowYourPal(true)}
+        aria-label="Open YourPal AI Chat"
+      >
+        <Bot className="w-8 h-8" />
+        <span className="ml-3 font-bold text-lg hidden sm:inline">YourPal</span>
+      </button>
+
+      {/* YourPal Modal (with chat) */}
+      {showYourPal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setShowYourPal(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full p-0 flex flex-col min-h-[75vh] h-[75vh] relative" onClick={e => e.stopPropagation()}>
+            <button
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-700"
+              onClick={() => setShowYourPal(false)}
+              aria-label="Close YourPal"
+            >
+              <span className="text-2xl">&times;</span>
+            </button>
+            <div className="flex items-center mb-6 px-8 pt-8">
+              <Bot className="w-8 h-8 text-primary" />
+              <span className="ml-3 font-bold text-2xl text-primary">YourPal</span>
+            </div>
+            <YourPalChat className="flex-1 min-h-0" />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
